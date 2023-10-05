@@ -5,6 +5,9 @@ import path from 'path';
 import routerApi from './dao/managerdb.js'
 import { router as viewRouter } from './routes/view.router.js';
 import {Server} from 'socket.io'
+import session from 'express-session';
+import ConnectMongo from 'connect-mongo'
+import { router as sessionsRouter} from './routes/sessions.router.js';
 
 const PORT=8080
 export const BASE_URL = `http://localhost:${PORT}`
@@ -22,7 +25,18 @@ app.use(express.urlencoded({extended:true}));
 app.use(express.static(path.join(__dirname,'/public')))
 app.use('/api', routerApi)
 
+app.use(session({
+  secret: 'claveSecreta',
+  resave: true, saveUninitialized: true,
+  store: ConnectMongo.create({
+    mongoUrl:"mongodb+srv://kaufmannEcommerce:kaufmannEcommerce@kaufmanndb.wakqh7a.mongodb.net/?retryWrites=true&w=majority&dbName=KaufmannDB",
+    ttl: 3600
+  })
+}))
+
 app.use('/', viewRouter)
+app.use('/api/sessions', sessionsRouter)
+
 
 app.get('*',(req, res)=>{
     res.send('Error 404 - Page not found')
